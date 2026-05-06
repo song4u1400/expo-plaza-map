@@ -58,27 +58,31 @@
 
     const marker = document.getElementById('my-location');
 
-    function calculatePosition(currentLat, currentLng) {
+        function calculatePosition(currentLat, currentLng) {
         const minLng = Math.min(corners.nw.lng, corners.sw.lng);
         const maxLng = Math.max(corners.ne.lng, corners.se.lng);
         const minLat = Math.min(corners.se.lat, corners.sw.lat);
         const maxLat = Math.max(corners.nw.lat, corners.ne.lat);
 
-        if(currentLng < minLng || currentLng > maxLng || currentLat < minLat || currentLat > maxLat) {
-            return null; 
-        }
+        if(currentLng < minLng || currentLng > maxLng || currentLat < minLat || currentLat > maxLat) return null; 
 
         const xRatio = (currentLng - minLng) / (maxLng - minLng);
-        const yRatio = (maxLat - currentLat) / (maxLat - minLat);
+        let yRatio = (maxLat - currentLat) / (maxLat - minLat);
 
-        const topX = (1 - xRatio) * 0 + xRatio * 100;
-        const bottomX = (1 - xRatio) * 0 + xRatio * 100; 
-        
-        const finalX = (1 - yRatio) * topX + yRatio * bottomX;
+        // ▼▼▼ 세로 오차(원근감) 보정 마법의 숫자 ▼▼▼
+        // 1.0 이면 평면 지도 비율입니다.
+        // 마커가 실제 내 위치보다 '위에' 찍힌다면 숫자를 올려보세요 (예: 1.3 ~ 1.8)
+        // 마커가 실제 내 위치보다 '아래에' 찍힌다면 숫자를 내려보세요 (예: 0.8 ~ 0.5)
+        const yCurve = 1.4; 
+        yRatio = Math.pow(yRatio, yCurve);
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+        const finalX = xRatio * 100;
         const finalY = yRatio * 100;
 
         return { x: finalX, y: finalY };
     }
+
 
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
